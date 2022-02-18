@@ -3,9 +3,11 @@
     <input
       type="text"
       v-model="searchText"
+      @click="resetIndex"
       @keydown.up="selectItemUp"
       @keydown.down="selectItemDown"
       @focus="ShowHistory"
+      @blur="isShowHistory = false"
     />
     <!-- <button>/</button> -->
 
@@ -13,6 +15,7 @@
       v-show="isShowHistory"
       :searchText="searchText"
       :historyIndex="historyIndex"
+      @setIndex="setIndex"
     ></SearchHistory>
   </div>
 </template>
@@ -62,18 +65,26 @@ export default {
         this.historyIndex--
       }
     },
-    scopeAdd() {},
-    scopeReduce() {},
+    scopeAdd() { },
+    scopeReduce() { },
     ShowHistory() {
       this.isShowHistory = true
     },
+    resetIndex() {
+      this.historyIndex = 0
+    },
+    //接收---
+    setIndex(data) {
+      this.historyIndex = data
+    }
   },
 }
 </script>
 
 <style lang="less" scoped>
+@witch: 350px;
 .search-container {
-  width: 280px;
+  width: @witch;
   margin: 60px auto;
   .common {
     background-color: transparent;
@@ -83,8 +94,9 @@ export default {
   }
   input {
     .common();
+    padding-left: 10px;
     width: 100%;
-    height: 25px;
+    height: 30px;
     outline: none;
   }
   input:focus {
