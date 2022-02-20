@@ -4,7 +4,7 @@
       <li
         v-for="(item, index) in scopeList"
         :key="index"
-        :class="[parentIndex === index ? 'active' : '']"
+        :class="[listIndex === index ? 'active' : '']"
         @mouseover="activeItem(index)"
       >
         <div class="text">
@@ -24,7 +24,7 @@
               ></path>
             </svg>
           </i>
-          <span>{{ searchText }}</span>
+          <span>{{ searchField }}</span>
         </div>
         <span class="scope-text">{{ item }}</span>
       </li>
@@ -35,9 +35,9 @@
 <script>
 export default {
   name: "SearchScope",
-  props: ["searchText", "scopeIndex"],
+  props: ["searchField", "scopeIndex"],
   computed: {
-    parentIndex: {
+    listIndex: {
       get() {
         return this.scopeIndex - 1
       },
@@ -53,7 +53,7 @@ export default {
   },
   methods: {
     activeItem(index) {
-      this.parentIndex = index
+      this.listIndex = index
     },
   }
 };

@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <Search></Search>
+    <Search @search="goSearch"></Search>
+
+    <div class="show">
+      {{ searchData }}
+    </div>
   </div>
 </template>
 
@@ -12,6 +16,16 @@ export default {
   components: {
     Search,
   },
+  data() {
+    return {
+      searchData: '',
+    }
+  },
+  methods: {
+    goSearch(data) {
+      this.searchData = data
+    }
+  }
 }
 </script>
 
@@ -25,5 +39,12 @@ body {
 }
 li {
   list-style: none;
+}
+.show {
+  padding: 50px;
+  width: 100%;
+  font-size: 28px;
+  text-align: center;
+  color: #fff;
 }
 </style>

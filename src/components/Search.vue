@@ -2,27 +2,33 @@
   <div class="search-container" @click.stop="">
     <input
       type="text"
-      v-model="searchText"
+      v-model="searchField"
+      id="searchInput"
+      :class="
+        isShowScope || (isShowHistory && historyListLength)
+          ? 'focus-radius'
+          : 'common-radius'
+      "
       @click="resetIndex"
       @keydown.up="selectItemUp"
       @keydown.down="selectItemDown"
+      @keyup.enter="goSearch"
       @focus="ShowHistoryOrScope"
-      @blur="hide"
       @input="toggleShow"
     />
     <!-- <button>/</button> -->
 
     <SearchHistory
       v-show="isShowHistory"
-      :searchText="searchText"
+      :historyList="historyList"
       :historyIndex="historyIndex"
       @setHistoryIndex="setHistoryIndex"
-      @historyLength="historyLength"
+      @jumpToSearch="clickHistory"
     ></SearchHistory>
 
     <SearchScope
       v-show="isShowScope"
-      :searchText="searchText"
+      :searchField="searchField"
       :scopeIndex="scopeIndex"
       @setScopeIndex="setScopeIndex"
     ></SearchScope>
@@ -33,31 +39,35 @@
 </template>
 
 <script>
-import SearchHistory from "./SearchHistory.vue"
-import SearchScope from "./SearchScope.vue"
+import SearchHistory from './SearchHistory.vue'
+import SearchScope from './SearchScope.vue'
 
 export default {
-  name: "Search",
+  name: 'Search',
   components: {
     SearchHistory,
     SearchScope,
   },
   data() {
     return {
-      searchText: "",
+      searchField: '',
       // index 0-7
       historyIndex: 0,
       scopeIndex: 0,
       isShowHistory: false,
       isShowScope: false,
+      historyList: [],
       historyListLength: 0,
     }
   },
   mounted() {
-    window.addEventListener("click", () => {
-      this.isShowHistory = false
-      this.isShowScope = false
+    window.addEventListener('click', () => {
+      this.hide()
     })
+    window.addEventListener('blur', () => {
+      this.hide()
+    })
+    this.getSearchHistory()
   },
   methods: {
     selectItemUp() {
@@ -112,7 +122,7 @@ export default {
       this.scopeIndex = 0
     },
     toggleShow() {
-      if (this.searchText === '') {
+      if (this.searchField === '') {
         this.isShowHistory = true
         this.isShowScope = false
         this.scopeIndex = 0
@@ -127,6 +137,49 @@ export default {
       this.isShowScope = false
     },
 
+    getSearchHistory() {
+      const keywords = localStorage.getItem('keywords')
+      const historyList = keywords.split(',')
+      this.historyList = historyList
+      this.historyListLength = historyList.length
+    },
+    updateSearchHistoy(data) {
+      const searchField = data ? data : this.searchField
+      if (searchField !== '') {
+        const keywords = localStorage.getItem('keywords')
+        let searchHistory
+        if (keywords === null || keywords === '') {
+          searchHistory = []
+        } else {
+          searchHistory = keywords.split(',')
+        }
+        const index = searchHistory.indexOf(searchField)
+        if (index >= 0) {
+          searchHistory.splice(index, 1)
+        }
+        if (searchHistory.length >= 7) {
+          searchHistory.pop()
+        }
+        searchHistory.unshift(searchField)
+        localStorage.setItem('keywords', searchHistory)
+        this.getSearchHistory()
+      }
+    },
+    goSearch() {
+      const searchField = this.searchField
+      // const searchField = data ? data : this.searchField
+      if (searchField === '') {
+        location.reload()
+      } else {
+        // go search
+        this.updateSearchHistoy(searchField)
+        this.$emit("search", searchField)
+        this.searchField = ''
+        this.hide()
+        document.getElementById('searchInput').blur()
+      }
+    },
+
     //接收---
     setHistoryIndex(data) {
       this.historyIndex = data
@@ -134,8 +187,11 @@ export default {
     setScopeIndex(data) {
       this.scopeIndex = data
     },
-    historyLength(data) {
-      this.historyListLength = data
+    clickHistory(data) {
+      this.updateSearchHistoy(data)
+      this.searchField = data
+      this.goSearch()
+      this.hide()
     },
   },
 }
@@ -151,8 +207,13 @@ export default {
   .common {
     background-color: transparent;
     border: 1px solid #57606a;
-    border-radius: 6px;
     color: #fff;
+  }
+  .common-radius {
+    border-radius: 6px;
+  }
+  .focus-radius {
+    border-radius: 6px 6px 0 0;
   }
   input {
     .common();
@@ -164,7 +225,7 @@ export default {
   input:focus {
     color: #57606a;
     background-color: #f6f8fa;
-    border-radius: 6px 6px 0 0;
+    // border-radius: 6px 6px 0 0;
   }
   button {
     .common();
